@@ -1,5 +1,5 @@
 import streamlit as st
-
+from src.cleaning import normalizar_excel_dux
 from src.loaders import read_excel_file, read_multiple_excel_files
 
 
@@ -69,20 +69,36 @@ if page == "Carga de datos":
                 mensual_ventas_files
             )
 
+            columnas_requeridas_ventas_mensuales = {
+                "Código",
+                "Producto",
+                "Cantidad Total Vendida",
+                "Monto Vendido",
+            }
+
             for file, dataframe in zip(
                 mensual_ventas_files,
                 mensual_ventas_dataframes,
             ):
-                with st.expander(f"Vista previa: {file.name}"):
-                    st.write(
-                        f"Filas: {dataframe.shape[0]} | "
-                        f"Columnas: {dataframe.shape[1]}"
-                    )
+                with st.expander(f"Vista previa limpia: {file.name}"):
+                    try:
+                        dataframe_limpio = normalizar_excel_dux(
+                            dataframe,
+                            columnas_requeridas_ventas_mensuales,
+                        )
 
-                    st.dataframe(
-                        dataframe.head(10).astype(str),
-                        width="stretch",
-                    )
+                        st.write(
+                            f"Filas: {dataframe_limpio.shape[0]} | "
+                            f"Columnas: {dataframe_limpio.shape[1]}"
+                        )
+
+                        st.dataframe(
+                            dataframe_limpio.head(10).astype(str),
+                            width="stretch",
+                        )
+
+                    except ValueError as error:
+                        st.error(str(error))
 
         except ValueError as error:
             st.error(str(error))
