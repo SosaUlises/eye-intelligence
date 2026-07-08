@@ -1,6 +1,10 @@
 import streamlit as st
-from src.cleaning import normalizar_excel_dux
 from src.loaders import read_excel_file, read_multiple_excel_files
+from src.processors import (
+    procesar_stock_actual,
+    procesar_ventas_detalladas,
+    procesar_ventas_mensuales,
+)
 
 
 st.set_page_config(
@@ -69,23 +73,13 @@ if page == "Carga de datos":
                 mensual_ventas_files
             )
 
-            columnas_requeridas_ventas_mensuales = {
-                "Código",
-                "Producto",
-                "Cantidad Total Vendida",
-                "Monto Vendido",
-            }
-
             for file, dataframe in zip(
                 mensual_ventas_files,
                 mensual_ventas_dataframes,
             ):
                 with st.expander(f"Vista previa limpia: {file.name}"):
                     try:
-                        dataframe_limpio = normalizar_excel_dux(
-                            dataframe,
-                            columnas_requeridas_ventas_mensuales,
-                        )
+                        dataframe_limpio = procesar_ventas_mensuales(dataframe)
 
                         st.write(
                             f"Filas: {dataframe_limpio.shape[0]} | "
@@ -114,16 +108,8 @@ if page == "Carga de datos":
                 detalle_ventas_file
             )
 
-            columnas_requeridas_ventas_detalladas = {
-                "Sucursal",
-                "Fecha Comp",
-                "Código Producto",
-                "Producto",
-            }
-
-            detalle_ventas_dataframe_limpio = normalizar_excel_dux(
-                detalle_ventas_dataframe,
-                columnas_requeridas_ventas_detalladas,
+            detalle_ventas_dataframe_limpio = procesar_ventas_detalladas(
+                detalle_ventas_dataframe
             )
 
             with st.expander("Vista previa limpia ventas detalladas"):
@@ -150,18 +136,10 @@ if page == "Carga de datos":
                 stock_actual_dataframe = read_excel_file(
                     stock_actual_file
                 )
-
-            columnas_requeridas_stock_actual = {
-                "Cod Producto",
-                "Producto",
-                "Depósito",
-                "Stock Disponible",
-            }
-
+                
             with st.spinner("Normalizando stock actual..."):
-                stock_actual_dataframe_limpio = normalizar_excel_dux(
-                    stock_actual_dataframe,
-                    columnas_requeridas_stock_actual,
+                stock_actual_dataframe_limpio = procesar_stock_actual(
+                    stock_actual_dataframe
                 )
 
             with st.expander("Vista previa limpia stock actual"):
