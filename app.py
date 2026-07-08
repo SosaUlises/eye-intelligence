@@ -114,14 +114,26 @@ if page == "Carga de datos":
                 detalle_ventas_file
             )
 
-            with st.expander("Vista previa ventas detalladas"):
+            columnas_requeridas_ventas_detalladas = {
+                "Sucursal",
+                "Fecha Comp",
+                "Código Producto",
+                "Producto",
+            }
+
+            detalle_ventas_dataframe_limpio = normalizar_excel_dux(
+                detalle_ventas_dataframe,
+                columnas_requeridas_ventas_detalladas,
+            )
+
+            with st.expander("Vista previa limpia ventas detalladas"):
                 st.write(
-                    f"Filas: {detalle_ventas_dataframe.shape[0]} | "
-                    f"Columnas: {detalle_ventas_dataframe.shape[1]}"
+                    f"Filas: {detalle_ventas_dataframe_limpio.shape[0]} | "
+                    f"Columnas: {detalle_ventas_dataframe_limpio.shape[1]}"
                 )
 
                 st.dataframe(
-                    detalle_ventas_dataframe.head(10).astype(str),
+                    detalle_ventas_dataframe_limpio.head(10).astype(str),
                     width="stretch",
                 )
 
@@ -134,18 +146,32 @@ if page == "Carga de datos":
         )
 
         try:
-            stock_actual_dataframe = read_excel_file(
-                stock_actual_file
-            )
+            with st.spinner("Leyendo archivo de stock actual..."):
+                stock_actual_dataframe = read_excel_file(
+                    stock_actual_file
+                )
 
-            with st.expander("Vista previa stock actual"):
+            columnas_requeridas_stock_actual = {
+                "Cod Producto",
+                "Producto",
+                "Depósito",
+                "Stock Disponible",
+            }
+
+            with st.spinner("Normalizando stock actual..."):
+                stock_actual_dataframe_limpio = normalizar_excel_dux(
+                    stock_actual_dataframe,
+                    columnas_requeridas_stock_actual,
+                )
+
+            with st.expander("Vista previa limpia stock actual"):
                 st.write(
-                    f"Filas: {stock_actual_dataframe.shape[0]} | "
-                    f"Columnas: {stock_actual_dataframe.shape[1]}"
+                    f"Filas: {stock_actual_dataframe_limpio.shape[0]} | "
+                    f"Columnas: {stock_actual_dataframe_limpio.shape[1]}"
                 )
 
                 st.dataframe(
-                    stock_actual_dataframe.head(10).astype(str),
+                    stock_actual_dataframe_limpio.head(10).astype(str),
                     width="stretch",
                 )
 
