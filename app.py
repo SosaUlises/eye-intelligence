@@ -6,6 +6,10 @@ from src.processors import (
     procesar_ventas_mensuales,
 )
 from src.integration import consolidar_ventas_mensuales
+from src.validation import (
+    medir_cruce_codigos,
+    medir_cruce_producto_deposito,
+)
 
 st.set_page_config(
     page_title="E&E Stock Intelligence",
@@ -203,6 +207,70 @@ if page == "Carga de datos":
                     stock_actual_dataframe_limpio.head(10).astype(str),
                     width="stretch",
                 )
+
+        except ValueError as error:
+            st.error(str(error))
+    
+    if detalle_ventas_file and stock_actual_file:
+        st.divider()
+        st.subheader("Validación de cruces")
+
+        try:
+            metricas_codigos = medir_cruce_codigos(
+                detalle_ventas_dataframe_limpio,
+                stock_actual_dataframe_limpio,
+            )
+
+            metricas_producto_deposito = (
+                medir_cruce_producto_deposito(
+                    detalle_ventas_dataframe_limpio,
+                    stock_actual_dataframe_limpio,
+                )
+            )
+
+            st.write("Coincidencia por código de producto")
+
+            columna_1, columna_2, columna_3 = st.columns(3)
+
+            columna_1.metric(
+                "Códigos vendidos",
+                metricas_codigos["codigos_ventas"],
+            )
+
+            columna_2.metric(
+                "Códigos coincidentes",
+                metricas_codigos["codigos_coincidentes"],
+            )
+
+            columna_3.metric(
+                "Coincidencia",
+                f"{metricas_codigos['porcentaje_coincidencia']:.2f}%",
+            )
+
+            st.write("Coincidencia por producto y depósito")
+
+            columna_4, columna_5, columna_6 = st.columns(3)
+
+            columna_4.metric(
+                "Combinaciones vendidas",
+                metricas_producto_deposito[
+                    "combinaciones_ventas"
+                ],
+            )
+
+            columna_5.metric(
+                "Combinaciones coincidentes",
+                metricas_producto_deposito[
+                    "combinaciones_coincidentes"
+                ],
+            )
+
+            columna_6.metric(
+                "Coincidencia",
+                (
+                    f"{metricas_producto_deposito['porcentaje_coincidencia']:.2f}%"
+                ),
+            )
 
         except ValueError as error:
             st.error(str(error))

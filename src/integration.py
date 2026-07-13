@@ -94,7 +94,7 @@ def consolidar_ventas_mensuales(
 
     ventas_mensuales_consolidadas = (
         ventas_mensuales_consolidadas.sort_values(
-            by=["Año", "Mes", "Código"]
+            by=["Año", "Mes", "codigo_producto"]
         )
         .reset_index(drop=True)
     )

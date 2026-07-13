@@ -17,7 +17,7 @@ def normalizar_texto(serie: pd.Series) -> pd.Series:
 def convertir_columnas_numericas(
     dataframe: pd.DataFrame,
     columnas: list[str],
-) -> pd.DataFrame:
+    ) -> pd.DataFrame:
     """
     Convierte las columnas indicadas a formato numérico.
 
@@ -43,7 +43,7 @@ def convertir_columnas_numericas(
 def normalizar_columnas_texto(
     dataframe: pd.DataFrame,
     columnas: list[str],
-) -> pd.DataFrame:
+    ) -> pd.DataFrame:
     """
     Normaliza columnas textuales eliminando espacios
     y conservando valores nulos.
@@ -62,3 +62,50 @@ def normalizar_columnas_texto(
         )
 
     return dataframe_normalizado
+
+
+def renombrar_columnas(
+    dataframe: pd.DataFrame,
+    mapeo_columnas: dict[str, str],
+    ) -> pd.DataFrame:
+    """
+    Renombra columnas según el diccionario recibido.
+    """
+
+    columnas_faltantes = [
+        columna
+        for columna in mapeo_columnas
+        if columna not in dataframe.columns
+    ]
+
+    if columnas_faltantes:
+        raise ValueError(
+            "No se encontraron las siguientes columnas: "
+            + ", ".join(columnas_faltantes)
+        )
+
+    return dataframe.rename(
+        columns=mapeo_columnas
+    ).copy()
+
+
+def normalizar_codigo_producto(
+    serie: pd.Series,
+    ) -> pd.Series:
+    """
+    Normaliza códigos de producto como texto.
+
+    Elimina espacios y evita valores como '123.0'
+    cuando el código proviene de Excel como número.
+    """
+
+    def transformar_codigo(valor):
+        if pd.isna(valor):
+            return pd.NA
+
+        if isinstance(valor, float) and valor.is_integer():
+            return str(int(valor))
+
+        return str(valor).strip()
+
+    return serie.apply(transformar_codigo)
