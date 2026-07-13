@@ -5,7 +5,7 @@ from src.processors import (
     procesar_ventas_detalladas,
     procesar_ventas_mensuales,
 )
-
+from src.integration import consolidar_ventas_mensuales
 
 st.set_page_config(
     page_title="E&E Stock Intelligence",
@@ -73,29 +73,80 @@ if page == "Carga de datos":
                 mensual_ventas_files
             )
 
-            for file, dataframe in zip(
+            reportes_mensuales_procesados = []
+
+            for archivo, dataframe in zip(
                 mensual_ventas_files,
                 mensual_ventas_dataframes,
             ):
-                with st.expander(f"Vista previa limpia: {file.name}"):
-                    try:
-                        dataframe_limpio = procesar_ventas_mensuales(dataframe)
+                dataframe_limpio = procesar_ventas_mensuales(
+                    dataframe
+                )
 
-                        st.write(
-                            f"Filas: {dataframe_limpio.shape[0]} | "
-                            f"Columnas: {dataframe_limpio.shape[1]}"
-                        )
+                reportes_mensuales_procesados.append(
+                    (
+                        archivo.name,
+                        dataframe_limpio,
+                    )
+                )
 
-                        st.dataframe(
-                            dataframe_limpio.head(10).astype(str),
-                            width="stretch",
-                        )
+                with st.expander(
+                    f"Vista previa limpia: {archivo.name}"
+                ):
+                    st.write(
+                        f"Filas: {dataframe_limpio.shape[0]} | "
+                        f"Columnas: {dataframe_limpio.shape[1]}"
+                    )
 
-                    except ValueError as error:
-                        st.error(str(error))
+                    st.dataframe(
+                        dataframe_limpio.head(10).astype(str),
+                        width="stretch",
+                    )
+
+            ventas_mensuales_consolidadas = (
+                consolidar_ventas_mensuales(
+                    reportes_mensuales_procesados
+                )
+            )
+
+            st.subheader("Ventas mensuales consolidadas")
+
+            st.write(
+                f"Archivos procesados: "
+                f"{len(reportes_mensuales_procesados)}"
+            )
+
+            st.write(
+                f"Filas consolidadas: "
+                f"{ventas_mensuales_consolidadas.shape[0]}"
+            )
+
+            st.write(
+                f"Columnas: "
+                f"{ventas_mensuales_consolidadas.shape[1]}"
+            )
+            
+            periodos_detectados = sorted(
+                ventas_mensuales_consolidadas[
+                    "Periodo"
+                ].unique()
+            )
+
+            st.write(
+                "Períodos detectados: "
+                + ", ".join(periodos_detectados)
+            )
+
+            st.dataframe(
+                ventas_mensuales_consolidadas
+                .head(20)
+                .astype(str),
+                width="stretch",
+            )
 
         except ValueError as error:
             st.error(str(error))
+
 
     if detalle_ventas_file:
         st.success(
