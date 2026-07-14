@@ -11,6 +11,10 @@ from src.validation import (
     medir_cruce_producto_deposito,
 )
 
+from src.dataset import construir_dataset_maestro
+
+
+
 st.set_page_config(
     page_title="E&E Stock Intelligence",
     page_icon="📊",
@@ -270,6 +274,53 @@ if page == "Carga de datos":
                 (
                     f"{metricas_producto_deposito['porcentaje_coincidencia']:.2f}%"
                 ),
+            )
+
+        except ValueError as error:
+            st.error(str(error))
+
+    if (
+        mensual_ventas_files
+        and detalle_ventas_file
+        and stock_actual_file
+    ):
+        st.divider()
+        st.subheader("Dataset maestro")
+
+        try:
+            with st.spinner(
+                "Integrando ventas históricas, ventas recientes y stock..."
+            ):
+                dataset_maestro = construir_dataset_maestro(
+                    ventas_mensuales_consolidadas,
+                    detalle_ventas_dataframe_limpio,
+                    stock_actual_dataframe_limpio,
+                )
+
+            columna_1, columna_2, columna_3 = st.columns(3)
+
+            columna_1.metric(
+                "Registros integrados",
+                len(dataset_maestro),
+            )
+
+            columna_2.metric(
+                "Productos",
+                dataset_maestro[
+                    "codigo_producto"
+                ].nunique(),
+            )
+
+            columna_3.metric(
+                "Depósitos",
+                dataset_maestro[
+                    "deposito"
+                ].nunique(),
+            )
+
+            st.dataframe(
+                dataset_maestro.head(30),
+                width="stretch",
             )
 
         except ValueError as error:
