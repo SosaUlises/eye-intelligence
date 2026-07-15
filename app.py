@@ -30,7 +30,9 @@ from src.ml.machine_learning import (
     obtener_resumen_clusters,
 )
 from src.ml.ml_dataset import construir_dataset_ml
-
+from src.llm.llm_service import (
+    consultar_asistente_comercial,
+)
 
 st.set_page_config(
     page_title="E&E Stock Intelligence",
@@ -702,6 +704,7 @@ elif page == "Modelo ML":
                     nombres_clusters
                 )
             )
+            st.session_state["resumen_clusters"] = resumen_mostrable
 
             st.dataframe(
                 resumen_mostrable,
@@ -764,8 +767,124 @@ elif page == "Modelo ML":
             st.error(str(error))
 
 elif page == "Asistente IA":
-    st.header("Asistente IA")
-    st.info(
-        "Esta sección permitirá consultar "
-        "los resultados en lenguaje natural."
+    st.header("Asistente comercial con IA")
+
+    st.write(
+        "Consultá los resultados obtenidos mediante el análisis "
+        "de datos y la segmentación comercial de K-Means."
     )
+
+    resultados_disponibles = (
+        "resultados_ml" in st.session_state
+        and "resumen_clusters" in st.session_state
+    )
+
+    if not resultados_disponibles:
+        st.warning(
+            "Primero debés ejecutar el Modelo ML para generar "
+            "los perfiles comerciales."
+        )
+
+    else:
+        resultados_ml = st.session_state["resultados_ml"]
+        resumen_clusters = st.session_state["resumen_clusters"]
+
+        if "historial_chat" not in st.session_state:
+            st.session_state["historial_chat"] = []
+
+        if "pregunta_sugerida" not in st.session_state:
+            st.session_state["pregunta_sugerida"] = None
+
+        st.subheader("Consultas sugeridas")
+
+        columna_1, columna_2 = st.columns(2)
+
+        if columna_1.button(
+            "Productos para revisar",
+            use_container_width=True,
+        ):
+            st.session_state["pregunta_sugerida"] = (
+                "¿Qué productos convendría revisar primero y por qué?"
+            )
+
+        if columna_2.button(
+            "Explicar perfiles",
+            use_container_width=True,
+        ):
+            st.session_state["pregunta_sugerida"] = (
+                "¿Qué perfiles comerciales detectó el modelo?"
+            )
+
+        columna_3, columna_4 = st.columns(2)
+
+        if columna_3.button(
+            "Stock sin movimiento",
+            use_container_width=True,
+        ):
+            st.session_state["pregunta_sugerida"] = (
+                "¿Qué productos tienen stock sin movimiento?"
+            )
+
+        if columna_4.button(
+            "Cobertura elevada",
+            use_container_width=True,
+        ):
+            st.session_state["pregunta_sugerida"] = (
+                "¿Qué caracteriza a los productos con cobertura elevada?"
+            )
+
+        st.divider()
+
+        for mensaje in st.session_state["historial_chat"]:
+            with st.chat_message(mensaje["role"]):
+                st.write(mensaje["content"])
+
+        pregunta_escrita = st.chat_input(
+            "Preguntá sobre stock, depósitos y perfiles..."
+        )
+
+        pregunta_sugerida = st.session_state.get(
+            "pregunta_sugerida"
+        )
+
+        pregunta_final = (
+            pregunta_escrita
+            if pregunta_escrita
+            else pregunta_sugerida
+        )
+
+        if pregunta_final:
+            st.session_state["pregunta_sugerida"] = None
+
+            st.session_state["historial_chat"].append(
+                {
+                    "role": "user",
+                    "content": pregunta_final,
+                }
+            )
+
+            with st.chat_message("user"):
+                st.write(pregunta_final)
+
+            with st.chat_message("assistant"):
+                with st.spinner(
+                    "Consultando los resultados..."
+                ):
+                    try:
+                        respuesta = consultar_asistente_comercial(
+                            pregunta_final,
+                            resultados_ml,
+                            resumen_clusters,
+                        )
+
+                    except (ValueError, RuntimeError) as error:
+                        respuesta = str(error)
+
+                st.write(respuesta)
+
+            st.session_state["historial_chat"].append(
+                {
+                    "role": "assistant",
+                    "content": respuesta,
+                }
+            )
