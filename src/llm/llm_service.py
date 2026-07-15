@@ -5,7 +5,7 @@ import unicodedata
 import pandas as pd
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
-
+import streamlit as st
 
 load_dotenv()
 
@@ -45,20 +45,28 @@ MAPEO_PERFILES = {
 
 def obtener_configuracion_hugging_face() -> tuple[str, str]:
     """
-    Obtiene el token y el modelo configurados
-    mediante variables de entorno.
+    Obtiene la configuración de Hugging Face.
+
+    En local utiliza variables de entorno.
+    En Streamlit Cloud utiliza st.secrets.
     """
 
     token = os.getenv("HF_TOKEN")
 
-    modelo = os.getenv(
-        "HF_MODEL",
-        "Qwen/Qwen2.5-7B-Instruct",
-    )
+    if not token:
+        token = st.secrets.get("HF_TOKEN")
+
+    modelo = os.getenv("HF_MODEL")
+
+    if not modelo:
+        modelo = st.secrets.get(
+            "HF_MODEL",
+            "Qwen/Qwen2.5-7B-Instruct",
+        )
 
     if not token:
         raise ValueError(
-            "No se encontró la variable de entorno HF_TOKEN."
+            "No se encontró la configuración HF_TOKEN."
         )
 
     return token, modelo
