@@ -12,7 +12,11 @@ from src.validation import (
 )
 
 from src.dataset import construir_dataset_maestro
-
+from src.dashboard import (
+    calcular_kpis,
+    obtener_top_productos,
+    obtener_ventas_por_rubro,
+)
 
 
 st.set_page_config(
@@ -296,6 +300,7 @@ if page == "Carga de datos":
                     detalle_ventas_dataframe_limpio,
                     stock_actual_dataframe_limpio,
                 )
+            st.session_state["dataset_maestro"] = dataset_maestro
 
             columna_1, columna_2, columna_3 = st.columns(3)
 
@@ -333,11 +338,96 @@ if page == "Carga de datos":
     ):
         st.info("Todavía no cargaste archivos.")
 
+
 elif page == "Dashboard":
     st.header("Dashboard comercial")
-    st.info(
-        "Esta sección se completará cuando procesemos los datos."
-    )
+
+    if "dataset_maestro" not in st.session_state:
+        st.warning(
+            "Primero debés cargar y procesar los archivos "
+            "desde la sección Carga de datos."
+        )
+
+    else:
+        dataset_maestro = st.session_state["dataset_maestro"]
+
+        try:
+            kpis = calcular_kpis(dataset_maestro)
+
+            st.subheader("Resumen general")
+
+            columna_1, columna_2, columna_3, columna_4 = (
+                st.columns(4)
+            )
+
+            columna_1.metric(
+                "Productos",
+                f"{kpis['productos']:,}",
+            )
+
+            columna_2.metric(
+                "Stock disponible",
+                f"{kpis['stock_disponible']:,.0f}",
+            )
+
+            columna_3.metric(
+                "Unidades vendidas recientes",
+                f"{kpis['unidades_vendidas_recientes']:,.0f}",
+            )
+
+            columna_4.metric(
+                "Monto vendido reciente",
+                f"${kpis['monto_ventas_recientes']:,.0f}",
+            )
+
+            columna_5, columna_6, columna_7 = st.columns(3)
+
+            columna_5.metric(
+                "Productos con ventas",
+                f"{kpis['productos_con_ventas']:,}",
+            )
+
+            columna_6.metric(
+                "Productos sin ventas recientes",
+                f"{kpis['productos_sin_ventas']:,}",
+            )
+
+            columna_7.metric(
+                "Depósitos",
+                f"{kpis['depositos']:,}",
+            )
+
+            st.divider()
+
+            st.subheader("Ventas recientes por rubro")
+
+            ventas_por_rubro = obtener_ventas_por_rubro(
+                dataset_maestro
+            )
+
+            st.bar_chart(
+                ventas_por_rubro,
+                x="rubro",
+                y="unidades_vendidas",
+            )
+
+            st.divider()
+
+            st.subheader("Productos más vendidos")
+
+            top_productos = obtener_top_productos(
+                dataset_maestro,
+                limite=10,
+            )
+
+            st.dataframe(
+                top_productos,
+                width="stretch",
+                hide_index=True,
+            )
+
+        except ValueError as error:
+            st.error(str(error))
 
 elif page == "Modelo ML":
     st.header("Modelo de Machine Learning")
