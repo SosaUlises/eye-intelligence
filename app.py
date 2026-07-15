@@ -776,7 +776,6 @@ elif page == "Asistente IA":
 
     resultados_disponibles = (
         "resultados_ml" in st.session_state
-        and "resumen_clusters" in st.session_state
     )
 
     if not resultados_disponibles:
@@ -873,8 +872,7 @@ elif page == "Asistente IA":
                     try:
                         respuesta = consultar_asistente_comercial(
                             pregunta_final,
-                            resultados_ml,
-                            resumen_clusters,
+                            resultados_ml
                         )
 
                     except (ValueError, RuntimeError) as error:

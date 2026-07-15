@@ -600,8 +600,7 @@ def construir_contexto_consulta(
 
 def consultar_asistente_comercial(
     pregunta: str,
-    resultados_ml: pd.DataFrame,
-    resumen_clusters: pd.DataFrame,
+    resultados_ml: pd.DataFrame
 ) -> str:
     """
     Consulta al LLM después de resolver los filtros
