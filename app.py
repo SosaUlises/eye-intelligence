@@ -22,6 +22,14 @@ from src.dashboard import (
 )
 from src.features import construir_features
 
+from src.machine_learning import (
+    asignar_nombre_clusters,
+    entrenar_modelo_segmentacion,
+    incorporar_perfiles_comerciales,
+    obtener_productos_representativos,
+    obtener_resumen_clusters,
+)
+from src.ml_dataset import construir_dataset_ml
 
 
 st.set_page_config(
@@ -124,6 +132,10 @@ if page == "Carga de datos":
                 consolidar_ventas_mensuales(
                     reportes_mensuales_procesados
                 )
+            )
+
+            st.session_state["ventas_mensuales_consolidadas"] = (
+            ventas_mensuales_consolidadas
             )
 
             st.subheader("Ventas mensuales consolidadas")
@@ -596,10 +608,160 @@ elif page == "Dashboard":
 
 elif page == "Modelo ML":
     st.header("Modelo de Machine Learning")
-    st.info(
-        "Esta sección mostrará entrenamiento, "
-        "evaluación y predicciones."
+
+    st.write(
+        "El modelo agrupa productos con comportamientos "
+        "comerciales similares mediante K-Means."
     )
+
+    if "dataset_maestro" not in st.session_state:
+        st.warning(
+            "Primero debés cargar y procesar los archivos "
+            "desde la sección Carga de datos."
+        )
+
+    else:
+        dataset_maestro = st.session_state[
+            "dataset_maestro"
+        ]
+
+        try:
+            with st.spinner(
+                "Construyendo variables y entrenando el modelo..."
+            ):
+                dataset_ml = construir_dataset_ml(
+                    dataset_maestro
+                )
+
+                (
+                    modelo,
+                    escalador,
+                    dataset_segmentado,
+                    puntaje_silueta,
+                ) = entrenar_modelo_segmentacion(
+                    dataset_ml,
+                    cantidad_clusters=4,
+                )
+
+                resumen_clusters = obtener_resumen_clusters(
+                    dataset_segmentado
+                )
+
+                nombres_clusters = asignar_nombre_clusters(
+                    resumen_clusters
+                )
+
+                resultados_ml = (
+                    incorporar_perfiles_comerciales(
+                        dataset_segmentado,
+                        nombres_clusters,
+                    )
+                )
+
+                productos_representativos = obtener_productos_representativos(
+                    resultados_ml,
+                    limite_por_grupo=5,
+                )
+
+
+            st.session_state["modelo_ml"] = modelo
+            st.session_state["escalador_ml"] = escalador
+            st.session_state["resultados_ml"] = resultados_ml
+            st.session_state["resumen_clusters"] = resumen_clusters
+            st.session_state["productos_representativos"] = (
+                productos_representativos
+            )
+
+            columna_1, columna_2, columna_3 = st.columns(3)
+
+            columna_1.metric(
+                "Productos analizados",
+                f"{len(resultados_ml):,}",
+            )
+
+            columna_2.metric(
+                "Grupos detectados",
+                f"{resultados_ml['cluster'].nunique()}",
+            )
+
+            columna_3.metric(
+                "Puntaje de silueta",
+                f"{puntaje_silueta:.3f}",
+                help=(
+                    "Mide qué tan separados están los grupos. "
+                    "Valores mayores indican mejor separación."
+                ),
+            )
+
+            st.subheader("Resumen de grupos")
+
+            resumen_mostrable = resumen_clusters.copy()
+
+            resumen_mostrable["perfil_comercial"] = (
+                resumen_mostrable["cluster"].map(
+                    nombres_clusters
+                )
+            )
+
+            st.dataframe(
+                resumen_mostrable,
+                width="stretch",
+                hide_index=True,
+            )
+
+            st.subheader("Productos representativos por perfil")
+
+            st.dataframe(
+                productos_representativos[
+                    [
+                        "perfil_comercial",
+                        "codigo_producto",
+                        "producto",
+                        "deposito",
+                        "stock_disponible",
+                        "ventas_recientes_mensualizadas",
+                        "promedio_ventas_mensual",
+                        "cobertura_stock_meses",
+                        "rotacion_reciente",
+                    ]
+                ],
+                width="stretch",
+                hide_index=True,
+            )
+
+            st.subheader("Clasificación comercial de productos")
+
+            columnas_resultado = [
+                "codigo_producto",
+                "producto",
+                "deposito",
+                "stock_disponible",
+                "ventas_recientes_mensualizadas",
+                "promedio_ventas_mensual",
+                "cobertura_stock_meses",
+                "rotacion_reciente",
+                "perfil_comercial",
+            ]
+
+            st.dataframe(
+                resultados_ml[
+                    columnas_resultado
+                ].sort_values(
+                    by=[
+                        "perfil_comercial",
+                        "stock_disponible",
+                    ],
+                    ascending=[
+                        True,
+                        False,
+                    ],
+                ),
+                width="stretch",
+                hide_index=True,
+            )
+
+        except ValueError as error:
+            st.error(str(error))
 
 elif page == "Asistente IA":
     st.header("Asistente IA")
