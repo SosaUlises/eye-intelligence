@@ -1,17 +1,17 @@
 import streamlit as st
-from src.data.loaders import read_excel_file, read_multiple_excel_files
-from src.data.processors import (
+from src.datos.loaders import read_excel_file, read_multiple_excel_files
+from src.datos.processors import (
     procesar_stock_actual,
     procesar_ventas_detalladas,
     procesar_ventas_mensuales,
 )
-from src.data.integration import consolidar_ventas_mensuales
-from src.data.validation import (
+from src.datos.integration import consolidar_ventas_mensuales
+from src.datos.validation import (
     medir_cruce_codigos,
     medir_cruce_producto_deposito,
 )
 
-from src.data.dataset import construir_dataset_maestro
+from src.datos.dataset import construir_dataset_maestro
 from src.analytics.dashboard import (
     calcular_kpis,
     filtrar_dataset,
