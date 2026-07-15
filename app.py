@@ -14,6 +14,9 @@ from src.validation import (
 from src.dataset import construir_dataset_maestro
 from src.dashboard import (
     calcular_kpis,
+    filtrar_dataset,
+    obtener_productos_sin_movimiento,
+    obtener_rango_fechas_recientes,
     obtener_top_productos,
     obtener_ventas_por_rubro,
 )
@@ -300,7 +303,20 @@ if page == "Carga de datos":
                     detalle_ventas_dataframe_limpio,
                     stock_actual_dataframe_limpio,
                 )
+
             st.session_state["dataset_maestro"] = dataset_maestro
+
+            st.session_state["periodo_historico_desde"] = (
+                ventas_mensuales_consolidadas["Periodo"].min()
+            )
+
+            st.session_state["periodo_historico_hasta"] = (
+                ventas_mensuales_consolidadas["Periodo"].max()
+            )
+
+            st.session_state["cantidad_periodos_historicos"] = (
+                ventas_mensuales_consolidadas["Periodo"].nunique()
+            )
 
             columna_1, columna_2, columna_3 = st.columns(3)
 
@@ -351,9 +367,127 @@ elif page == "Dashboard":
     else:
         dataset_maestro = st.session_state["dataset_maestro"]
 
-        try:
-            kpis = calcular_kpis(dataset_maestro)
+        st.subheader("Filtros")
 
+        depositos_disponibles = sorted(
+            dataset_maestro["deposito"]
+            .dropna()
+            .unique()
+            .tolist()
+        )
+
+        rubros_disponibles = sorted(
+            dataset_maestro["rubro"]
+            .dropna()
+            .unique()
+            .tolist()
+        )
+
+        marcas_disponibles = sorted(
+            dataset_maestro["marca"]
+            .dropna()
+            .unique()
+            .tolist()
+        )
+
+        columna_filtro_1, columna_filtro_2, columna_filtro_3 = (
+            st.columns(3)
+        )
+
+        depositos_seleccionados = columna_filtro_1.multiselect(
+            "Depósitos",
+            options=depositos_disponibles,
+        )
+
+        rubros_seleccionados = columna_filtro_2.multiselect(
+            "Rubros",
+            options=rubros_disponibles,
+        )
+
+        marcas_seleccionadas = columna_filtro_3.multiselect(
+            "Marcas",
+            options=marcas_disponibles,
+        )
+
+        dataset_filtrado = filtrar_dataset(
+            dataset_maestro,
+            depositos=depositos_seleccionados,
+            rubros=rubros_seleccionados,
+            marcas=marcas_seleccionadas,
+        )
+
+        if dataset_filtrado.empty:
+            st.warning(
+                "No hay datos para la combinación "
+                "de filtros seleccionada."
+            )
+            st.stop()
+
+        st.divider()
+
+        st.subheader("Períodos analizados")
+
+        periodo_historico_desde = st.session_state.get(
+            "periodo_historico_desde"
+        )
+
+        periodo_historico_hasta = st.session_state.get(
+            "periodo_historico_hasta"
+        )
+
+        cantidad_periodos_historicos = st.session_state.get(
+            "cantidad_periodos_historicos",
+            0,
+        )
+
+        fecha_reciente_desde, fecha_reciente_hasta = (
+            obtener_rango_fechas_recientes(
+                dataset_filtrado
+            )
+        )
+
+        columna_periodo_1, columna_periodo_2, columna_periodo_3 = (
+            st.columns(3)
+        )
+
+        columna_periodo_1.info(
+            "Histórico mensual\n\n"
+            f"{periodo_historico_desde} a "
+            f"{periodo_historico_hasta}\n\n"
+            f"{cantidad_periodos_historicos} períodos"
+        )
+
+        if (
+            fecha_reciente_desde is not None
+            and fecha_reciente_hasta is not None
+        ):
+            columna_periodo_2.info(
+                "Ventas recientes\n\n"
+                f"{fecha_reciente_desde.strftime('%d/%m/%Y')} "
+                f"al "
+                f"{fecha_reciente_hasta.strftime('%d/%m/%Y')}"
+            )
+        else:
+            columna_periodo_2.info(
+                "Ventas recientes\n\n"
+                "Sin fechas disponibles"
+            )
+
+        columna_periodo_3.info(
+            "Stock\n\n"
+            "Estado actual al momento de la carga"
+        )
+
+        st.caption(
+            f"Registros analizados: {len(dataset_filtrado):,}"
+        )
+
+        try:
+
+            kpis = calcular_kpis(
+                dataset_filtrado
+            )
+            
             st.subheader("Resumen general")
 
             columna_1, columna_2, columna_3, columna_4 = (
@@ -361,48 +495,37 @@ elif page == "Dashboard":
             )
 
             columna_1.metric(
-                "Productos",
-                f"{kpis['productos']:,}",
+                "Ventas recientes (60 días)",
+                f"${kpis['monto_ventas_recientes']:,.0f}",
             )
 
             columna_2.metric(
-                "Stock disponible",
+                "Stock disponible actual",
                 f"{kpis['stock_disponible']:,.0f}",
             )
 
             columna_3.metric(
-                "Unidades vendidas recientes",
+                "Unidades vendidas (60 días)",
                 f"{kpis['unidades_vendidas_recientes']:,.0f}",
             )
 
             columna_4.metric(
-                "Monto vendido reciente",
-                f"${kpis['monto_ventas_recientes']:,.0f}",
-            )
-
-            columna_5, columna_6, columna_7 = st.columns(3)
-
-            columna_5.metric(
-                "Productos con ventas",
-                f"{kpis['productos_con_ventas']:,}",
-            )
-
-            columna_6.metric(
-                "Productos sin ventas recientes",
-                f"{kpis['productos_sin_ventas']:,}",
-            )
-
-            columna_7.metric(
-                "Depósitos",
-                f"{kpis['depositos']:,}",
+                "Promedio mensual histórico",
+                f"{kpis['promedio_mensual_historico']:,.0f}",
+                help=(
+                    "Promedio mensual calculado sobre "
+                    f"{kpis['cantidad_periodos_historicos']} períodos."
+                ),
             )
 
             st.divider()
 
-            st.subheader("Ventas recientes por rubro")
+            st.subheader(
+                "Ventas por rubro — período reciente"
+            )
 
             ventas_por_rubro = obtener_ventas_por_rubro(
-                dataset_maestro
+                dataset_filtrado
             )
 
             st.bar_chart(
@@ -413,10 +536,12 @@ elif page == "Dashboard":
 
             st.divider()
 
-            st.subheader("Productos más vendidos")
+            st.subheader(
+                "Productos más vendidos — período reciente"
+            )
 
             top_productos = obtener_top_productos(
-                dataset_maestro,
+                dataset_filtrado,
                 limite=10,
             )
 
@@ -425,6 +550,37 @@ elif page == "Dashboard":
                 width="stretch",
                 hide_index=True,
             )
+
+            st.divider()
+
+            st.subheader(
+                "Productos con stock sin movimiento"
+            )
+
+            st.caption(
+                "Productos con stock disponible que no "
+                "registraron ventas durante el período reciente."
+            )
+
+            productos_sin_movimiento = (
+                obtener_productos_sin_movimiento(
+                    dataset_filtrado,
+                    limite=10,
+                )
+            )
+
+            if productos_sin_movimiento.empty:
+                st.info(
+                    "Todos los productos con stock registraron "
+                    "ventas durante el período reciente."
+                )
+
+            else:
+                st.dataframe(
+                    productos_sin_movimiento,
+                    width="stretch",
+                    hide_index=True,
+                )
 
         except ValueError as error:
             st.error(str(error))
