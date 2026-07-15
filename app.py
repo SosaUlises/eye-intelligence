@@ -20,6 +20,8 @@ from src.dashboard import (
     obtener_top_productos,
     obtener_ventas_por_rubro,
 )
+from src.features import construir_features
+
 
 
 st.set_page_config(
@@ -303,8 +305,14 @@ if page == "Carga de datos":
                     detalle_ventas_dataframe_limpio,
                     stock_actual_dataframe_limpio,
                 )
+                dataset_features = construir_features(
+                dataset_maestro
+                )
+
 
             st.session_state["dataset_maestro"] = dataset_maestro
+            st.session_state["dataset_features"] = dataset_features
+
 
             st.session_state["periodo_historico_desde"] = (
                 ventas_mensuales_consolidadas["Periodo"].min()
@@ -317,6 +325,7 @@ if page == "Carga de datos":
             st.session_state["cantidad_periodos_historicos"] = (
                 ventas_mensuales_consolidadas["Periodo"].nunique()
             )
+
 
             columna_1, columna_2, columna_3 = st.columns(3)
 
