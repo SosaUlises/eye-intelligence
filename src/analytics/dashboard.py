@@ -1,3 +1,5 @@
+"""Funciones de KPIs, filtros y tablas usadas por el dashboard comercial."""
+
 import pandas as pd
 
 

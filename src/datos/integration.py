@@ -1,3 +1,5 @@
+"""Consolidacion de reportes mensuales y extraccion del periodo desde el archivo."""
+
 import re
 
 import pandas as pd

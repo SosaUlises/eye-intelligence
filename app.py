@@ -1,3 +1,10 @@
+"""
+Aplicacion principal de Streamlit.
+
+Coordina la carga de reportes de Dux, la construccion del dataset maestro,
+el dashboard comercial, la segmentacion con K-Means y el asistente IA.
+"""
+
 import streamlit as st
 from src.datos.loaders import read_excel_file, read_multiple_excel_files
 from src.datos.processors import (
@@ -60,6 +67,7 @@ page = st.sidebar.radio(
 )
 
 
+# Pantalla inicial: carga, limpieza, validacion e integracion de los Excel.
 if page == "Carga de datos":
     st.header("Carga de datos de Dux")
 
@@ -378,6 +386,7 @@ if page == "Carga de datos":
         st.info("Todavía no cargaste archivos.")
 
 
+# Pantalla de analisis comercial: filtros, KPIs y listados principales.
 elif page == "Dashboard":
     st.header("Dashboard comercial")
 
@@ -608,6 +617,7 @@ elif page == "Dashboard":
         except ValueError as error:
             st.error(str(error))
 
+# Pantalla de Machine Learning: prepara variables y entrena K-Means.
 elif page == "Modelo ML":
     st.header("Modelo de Machine Learning")
 
@@ -766,6 +776,7 @@ elif page == "Modelo ML":
         except ValueError as error:
             st.error(str(error))
 
+# Pantalla conversacional: consulta los resultados ya calculados.
 elif page == "Asistente IA":
     st.header("Asistente comercial con IA")
 

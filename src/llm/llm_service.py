@@ -1,3 +1,5 @@
+"""Asistente comercial: interpreta preguntas, filtra con Pandas y consulta al LLM."""
+
 import os
 import re
 import unicodedata

@@ -1,3 +1,5 @@
+"""Preparacion del dataset que usa el modelo de segmentacion comercial."""
+
 import numpy as np
 import pandas as pd
 

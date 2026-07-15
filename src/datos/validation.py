@@ -1,3 +1,5 @@
+"""Metricas para revisar si ventas y stock cruzan correctamente."""
+
 import pandas as pd
 
 

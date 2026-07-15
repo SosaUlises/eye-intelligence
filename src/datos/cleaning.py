@@ -1,3 +1,5 @@
+"""Funciones base para limpiar reportes Excel exportados desde Dux."""
+
 import pandas as pd
 
 

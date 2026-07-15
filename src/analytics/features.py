@@ -1,3 +1,5 @@
+"""Calculo de variables comerciales derivadas para analisis y Machine Learning."""
+
 import numpy as np
 import pandas as pd
 

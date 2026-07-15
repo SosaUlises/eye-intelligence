@@ -1,3 +1,5 @@
+"""Procesadores especificos para normalizar ventas mensuales, ventas detalladas y stock."""
+
 import pandas as pd
 
 from src.datos.cleaning import normalizar_excel_dux

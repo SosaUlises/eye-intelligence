@@ -1,3 +1,5 @@
+"""Lectura de archivos Excel cargados desde la interfaz Streamlit."""
+
 from typing import BinaryIO
 
 import pandas as pd

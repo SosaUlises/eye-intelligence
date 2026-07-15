@@ -1,3 +1,5 @@
+"""Construccion del dataset maestro que integra historico, ventas recientes y stock."""
+
 import pandas as pd
 
 

@@ -1,3 +1,5 @@
+"""Transformaciones reutilizables para texto, numeros, nombres de columnas y codigos."""
+
 import pandas as pd
 
 

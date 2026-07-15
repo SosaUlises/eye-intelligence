@@ -1,3 +1,5 @@
+"""Mapeos manuales para traducir sucursales del reporte a depositos comerciales."""
+
 MAPEO_SUCURSAL_DEPOSITO = {
     "RICARDONE": "DEPOSITO RICARDONE",
     "PUERTO": "DEPOSITO PUERTO",
