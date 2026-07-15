@@ -1,18 +1,18 @@
 import streamlit as st
-from src.loaders import read_excel_file, read_multiple_excel_files
-from src.processors import (
+from src.data.loaders import read_excel_file, read_multiple_excel_files
+from src.data.processors import (
     procesar_stock_actual,
     procesar_ventas_detalladas,
     procesar_ventas_mensuales,
 )
-from src.integration import consolidar_ventas_mensuales
-from src.validation import (
+from src.data.integration import consolidar_ventas_mensuales
+from src.data.validation import (
     medir_cruce_codigos,
     medir_cruce_producto_deposito,
 )
 
-from src.dataset import construir_dataset_maestro
-from src.dashboard import (
+from src.data.dataset import construir_dataset_maestro
+from src.analytics.dashboard import (
     calcular_kpis,
     filtrar_dataset,
     obtener_productos_sin_movimiento,
@@ -20,16 +20,16 @@ from src.dashboard import (
     obtener_top_productos,
     obtener_ventas_por_rubro,
 )
-from src.features import construir_features
+from src.analytics.features import construir_features
 
-from src.machine_learning import (
+from src.ml.machine_learning import (
     asignar_nombre_clusters,
     entrenar_modelo_segmentacion,
     incorporar_perfiles_comerciales,
     obtener_productos_representativos,
     obtener_resumen_clusters,
 )
-from src.ml_dataset import construir_dataset_ml
+from src.ml.ml_dataset import construir_dataset_ml
 
 
 st.set_page_config(
