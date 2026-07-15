@@ -30,14 +30,28 @@ MAPEO_PERFILES = {
     "stock sin movimiento": "Stock sin movimiento",
     "sin movimiento": "Stock sin movimiento",
     "sin ventas": "Stock sin movimiento",
+    "mercaderia parada": "Stock sin movimiento",
+    "mercadería parada": "Stock sin movimiento",
+    "productos parados": "Stock sin movimiento",
+    "stock parado": "Stock sin movimiento",
+    "poca venta": "Stock sin movimiento",
+    "baja venta": "Stock sin movimiento",
     "inmovilizado": "Stock sin movimiento",
     "inmovilizados": "Stock sin movimiento",
     "liquidar": "Stock sin movimiento",
     "alta rotación": "Alta rotación",
     "alta rotacion": "Alta rotación",
+    "se mueve mucho": "Alta rotación",
+    "buen movimiento": "Alta rotación",
+    "mucha venta": "Alta rotación",
+    "vende bien": "Alta rotación",
     "cobertura elevada": "Cobertura elevada",
     "sobrestock": "Cobertura elevada",
     "mucho stock": "Cobertura elevada",
+    "sobrante": "Cobertura elevada",
+    "sobrantes": "Cobertura elevada",
+    "exceso de stock": "Cobertura elevada",
+    "demasiado stock": "Cobertura elevada",
     "rotación moderada": "Rotación moderada",
     "rotacion moderada": "Rotación moderada",
 }
@@ -204,6 +218,19 @@ def detectar_criterio_orden(pregunta: str) -> str:
     pregunta_normalizada = normalizar_texto(pregunta)
 
     criterios = {
+        "revision_prioritaria": [
+            "revisar primero",
+            "deberia revisar",
+            "debería revisar",
+            "conviene revisar",
+            "conviendria revisar",
+            "convendría revisar",
+            "priorizar",
+            "prestar atencion",
+            "prestar atención",
+            "productos problematicos",
+            "productos problemáticos",
+        ],
         "mas_vendidos": [
             "mas vendidos",
             "mayores ventas",
@@ -447,6 +474,20 @@ def ordenar_resultados(
             ],
         )
 
+    if criterio == "revision_prioritaria":
+        return resultados.sort_values(
+            by=[
+                "stock_disponible",
+                "ventas_recientes_mensualizadas",
+                "cobertura_stock_meses",
+            ],
+            ascending=[
+                False,
+                True,
+                False,
+            ],
+        )
+
     if perfil == "Stock sin movimiento":
         return resultados.sort_values(
             by=[
@@ -567,6 +608,10 @@ def construir_contexto_consulta(
             "- No se encontraron productos que cumplan "
             "los filtros solicitados."
         )
+        lineas.append(
+            "- Sugerí probar con otra marca, depósito, rubro "
+            "o perfil comercial."
+        )
 
         return "\n".join(lineas)
 
@@ -643,12 +688,19 @@ def consultar_asistente_comercial(
     - Indicá cuántos resultados totales se encontraron.
     - Si se muestra una selección, aclaralo.
     - Respetá el criterio de orden indicado en el contexto.
+    - Explicá brevemente qué criterio se usó para ordenar
+    los productos.
+    - Si el criterio es revision_prioritaria, aclarar que se
+    priorizan productos con stock alto, baja venta reciente
+    y cobertura elevada.
     - Listá únicamente los productos incluidos en el contexto.
     - Diferenciá stock actual, ventas recientes mensualizadas
     y promedio histórico mensual.
     - Los perfiles de K-Means son agrupaciones exploratorias,
     no diagnósticos absolutos.
-    - No hagas predicciones futuras.
+    - Recordá que el sistema no predice ventas futuras.
+    - Si no hay resultados, sugerí reformular la consulta
+    con marca, depósito, rubro o perfil comercial.
     - Respondé de forma breve y ejecutiva.
     - Respondé en español.
     """.strip()

@@ -799,29 +799,29 @@ elif page == "Asistente IA":
         columna_1, columna_2 = st.columns(2)
 
         if columna_1.button(
-            "Productos para revisar",
+            "Revisar primero",
             use_container_width=True,
         ):
             st.session_state["pregunta_sugerida"] = (
-                "¿Qué productos convendría revisar primero y por qué?"
+                "¿Qué productos debería revisar primero?"
             )
 
         if columna_2.button(
-            "Explicar perfiles",
+            "Mucho stock y pocas ventas",
             use_container_width=True,
         ):
             st.session_state["pregunta_sugerida"] = (
-                "¿Qué perfiles comerciales detectó el modelo?"
+                "¿Qué productos tienen mucho stock y pocas ventas?"
             )
 
         columna_3, columna_4 = st.columns(2)
 
         if columna_3.button(
-            "Stock sin movimiento",
+            "Mayor rotación",
             use_container_width=True,
         ):
             st.session_state["pregunta_sugerida"] = (
-                "¿Qué productos tienen stock sin movimiento?"
+                "¿Qué productos tienen mayor rotación?"
             )
 
         if columna_4.button(
@@ -829,7 +829,7 @@ elif page == "Asistente IA":
             use_container_width=True,
         ):
             st.session_state["pregunta_sugerida"] = (
-                "¿Qué caracteriza a los productos con cobertura elevada?"
+                "¿Qué productos tienen cobertura elevada?"
             )
 
         st.divider()
