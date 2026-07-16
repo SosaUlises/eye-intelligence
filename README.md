@@ -240,7 +240,10 @@ streamlit run app.py
 ```
 
 ---
+# Versión online
+https://eye-intelligence.streamlit.app
 
+---
 # Limitaciones
 
 - El modelo K-Means realiza segmentación de productos; no predice ventas futuras.
